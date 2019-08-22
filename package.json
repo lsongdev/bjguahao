@@ -1,0 +1,29 @@
+{
+  "name": "bjguahao",
+  "version": "0.0.1",
+  "description": "北京市预约挂号统一平台",
+  "main": "index.js",
+  "bin":{
+    "bjguahao": "bin/bjguahao"
+  },
+  "scripts": {
+    "test": "node test"
+  },
+  "keywords": [
+    "bjguahao"
+  ],
+  "author": "Lsong",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/song940/bjguahao.git"
+  },
+  "bugs": {
+    "url": "https://github.com/song940/bjguahao/issues"
+  },
+  "homepage": "https://github.com/song940/bjguahao#readme",
+  "directories": {
+    "example": "example"
+  },
+  "dependencies": {}
+}

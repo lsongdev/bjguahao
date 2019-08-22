@@ -1,0 +1,17 @@
+#!/usr/bin/env node
+
+const pkg = require('../package');
+
+const help = () => {
+  console.log();
+  console.log(` ${pkg.name}@${pkg.version}`);
+  console.log();
+  console.log(' - login');
+  console.log(' - hospital');
+  console.log(' - department');
+  console.log(' - doctor');
+  console.log(' - patient');
+  console.log(' - help');
+};
+
+help();
