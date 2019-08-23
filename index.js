@@ -1,5 +1,6 @@
 const http = require('http');
 const assert = require('assert');
+const crypto = require('crypto-js');
 const qs = require('querystring');
 
 const ERROR_CODES = {
@@ -45,27 +46,43 @@ const handleError = res => {
   return res.data || res;
 };
 
-const base64 = str => 
-  Buffer.from(str).toString('base64');
+const ensureStatusCode = expected => res => {
+  const { statusCode } = res;
+  assert.equal(statusCode, expected, `status code must be "${expected}" but actually "${statusCode}"`);
+  return res;
+};
+
+const encrypt = str => {
+  var key = crypto.enc.Utf8.parse("hyde2019hyde2019");
+  const data = crypto.enc.Utf8.parse(str);
+  const encrypted = crypto.AES.encrypt(data, key, {
+    mode: crypto.mode.ECB, 
+    padding: crypto.pad.Pkcs7
+  });
+  return encrypted.toString();
+};
 
 const login = (mobileNo, password) => {
   const payload = {
-    mobileNo: base64(mobileNo),
-    password: base64(password),
-    yzm: '',
+    mobileNo: encrypt(mobileNo),
+    password: encrypt(password),
+    loginType: 'PASSWORD_LOGIN',
   };
   var cookie = '';
   return Promise
     .resolve()
-    .then(() => post(`${bjguahao.api}/quicklogin.htm`, payload))
+    .then(() => post(`${bjguahao.api}/web/login/doLogin.htm`, payload, {  }))
+    .then(ensureStatusCode(200))
     .then(res => {
-      assert.equal(res.statusCode, 200);
       cookie = res.headers['set-cookie'];
       return res;
     })
     .then(readStream)
     .then(JSON.parse)
-    .then(handleError)
+    .then(body => {
+      assert.equal(body.code, 0, body.msg);
+      return body;
+    })
     .then(() => cookie.map(x => x.split(/;\s?/)[0]))
     .then(cookies => cookies.join('; '))
 }
@@ -74,6 +91,7 @@ const getDoctors = (cookie, payload) => {
   return Promise
     .resolve()
     .then(() => post(`${bjguahao.api}/dpt/partduty.htm`, payload, { cookie }))
+    .then(ensureStatusCode(200))
     .then(readStream)
     .then(JSON.parse)
     .then(handleError)
@@ -86,28 +104,31 @@ const getPatients = (cookie, payload) => {
   return Promise
     .resolve()
     .then(() => get(doctorURL, { cookie }))
-    .then(res => {
-      assert.equal(res.statusCode, 200);
-      return res;
-    })
+    .then(ensureStatusCode(200))
     .then(readStream)
     .then(body => body.toString())
     .then(html => {
-      const m = html.match(/<div class="personnel(.+)<\/span><\/div><\/div>/g);
-      const patients = m.map(x => {
+      const m = html.match(/<div class="personnel(.+)<\/p><\/div><\/div>/g);
+      if(!m) return console.error(doctorURL);
+      return m.map(x => {
         const id = x.match(/name="(\d+)"/)[1];
-        const name = x.match(/<span class="name">(.+)<\/span><span/)[1];
-        const tail = x.match(/<span class="code">\*+(.+)<\/span><\/div><\/div>$/)[1];
-        return { id, name, tail };
+        const name = x.match(/<p class="name">(.+)<\/p><p/)[1];
+        const phone = x.match(/phone="(\d+)"/)[1];
+        const tail = x.match(/<p class="code"><b>身份证<\/b>\*+(.+)<\/p><\/div><\/div>$/)[1];
+        return { id, name, phone, tail };
       });
-      return patients;
     })
 };
 
-const code = cookie => {
+const code = (cookie, mobileNo) => {
+  const payload = {
+    mobileNo,
+    smsType: 4,
+  };
   return Promise
     .resolve()
-    .then(() => post(`http://www.114yygh.com/v/sendorder.htm`, {}, { cookie }))
+    .then(() => post(`${bjguahao.api}/v/sendSmsCode.htm`, payload, { cookie }))
+    .then(ensureStatusCode(200))
     .then(readStream)
     .then(JSON.parse)
     .then(handleError)
@@ -117,6 +138,7 @@ const bjguahao = async (cookie, payload) => {
   return Promise
     .resolve()
     .then(() => post(`${bjguahao.api}/order/confirmV1.htm`, payload, { cookie }))
+    .then(ensureStatusCode(200))
     .then(readStream)
     .then(JSON.parse)
     .then(handleError)

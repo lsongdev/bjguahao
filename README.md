@@ -22,19 +22,35 @@ const input = prompt => new Promise((resolve, reject) => {
     .once('data', line => resolve(`${line}`.trim()));
 });
 
+const datetime = (date, pattern) =>
+  pattern.replace(/{(\w+)}/g, (_, name) => ({
+    yyyy: date.getFullYear(),
+    yy: date.getYear(),
+    MM: date.getMonth() + 1,
+    dd: date.getDate(),
+    hh: date.getHours(),
+    mm: date.getMinutes(),
+    ss: date.getSeconds(),
+  })[name] || `{${name}}`);
+
 (async () => {
 
-  const mobile = await input('username:');;
-  const password = await input('password:');
-  const session = await bjguahao.login(mobile, password);
 
+  var session = '';
+
+  if(!session) {
+    const mobile = await input('username:');;
+    const password = await input('password:');
+    session = await bjguahao.login(mobile, password);
+  }
+  
   const payload = {
     hospitalId: 1,
     departmentId: 200004023,
     dutyCode: 1,
-    dutyDate: '2019-08-22'
+    dutyDate: datetime(new Date, '{yyyy}-{MM}-{dd}')
   };
-
+  
   const doctors = await bjguahao.doctors(session, payload);
   console.log(' doctors');
   doctors.forEach(doctor => {
@@ -42,7 +58,7 @@ const input = prompt => new Promise((resolve, reject) => {
   });
   console.log();
 
-  const doctor = doctors[0];
+  const doctor = doctors[0]; // TODO:
   payload.doctorId = doctor.doctorId;
   payload.dutySourceId = doctor.dutySourceId;
   const patients = await bjguahao.patients(session, payload);
@@ -52,17 +68,28 @@ const input = prompt => new Promise((resolve, reject) => {
   });
   console.log();
 
-  const result = await bjguahao.code(session);
-  console.log(result);
-
   payload.patientId = patients[0].id;
+  payload.phone = patients[0].phone;
+
+  const result = await bjguahao.code(session, payload.phone);
+  console.log(result);
+  console.log();
+
   payload.smsVerifyCode = await input('verify code:');
+
   const output = await bjguahao(session, payload);
   console.log(output);
 
 })();
-
 ```
+
+### Documentation
+
++ bjguahao.code
++ bjguahao.login
++ bjguahao.request
++ bjguahao.doctors
++ bjguahao.patients
 
 ### Contributing
 - Fork this Repo first

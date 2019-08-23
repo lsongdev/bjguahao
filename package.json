@@ -1,9 +1,9 @@
 {
   "name": "bjguahao",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "北京市预约挂号统一平台",
   "main": "index.js",
-  "bin":{
+  "bin": {
     "bjguahao": "bin/bjguahao"
   },
   "scripts": {
@@ -25,5 +25,7 @@
   "directories": {
     "example": "example"
   },
-  "dependencies": {}
+  "dependencies": {
+    "crypto-js": "^3.1.9-1"
+  }
 }
