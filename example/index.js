@@ -27,6 +27,7 @@ const datetime = (date, pattern) =>
     const mobile = await input('username:');;
     const password = await input('password:');
     session = await bjguahao.login(mobile, password);
+    console.log('session', session);
   }
   
   const payload = {
@@ -35,6 +36,9 @@ const datetime = (date, pattern) =>
     dutyCode: 1,
     dutyDate: datetime(new Date, '{yyyy}-{MM}-{dd}')
   };
+
+  const calendar = await bjguahao.calendar(payload);
+  console.log(calendar);
   
   const doctors = await bjguahao.doctors(session, payload);
   console.log(' doctors');
@@ -43,7 +47,7 @@ const datetime = (date, pattern) =>
   });
   console.log();
 
-  const doctor = doctors[0]; // TODO:
+  const doctor = doctors[0];
   payload.doctorId = doctor.doctorId;
   payload.dutySourceId = doctor.dutySourceId;
   const patients = await bjguahao.patients(session, payload);

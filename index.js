@@ -41,8 +41,13 @@ const readStream = stream => {
 };
 
 const handleError = res => {
-  assert.equal(res.code, 200, res.msg);
-  assert.notEqual(res.hasError, true, res.msg);
+  if((res.code !== 200 && res.code !== 1) || res.hasError === true) {
+    const err = new Error(res.msg);
+    err.code = res.code;
+    err.response = res;
+    err.data = res.data;
+    throw err;
+  }
   return res.data || res;
 };
 
@@ -53,13 +58,12 @@ const ensureStatusCode = expected => res => {
 };
 
 const encrypt = str => {
-  var key = crypto.enc.Utf8.parse("hyde2019hyde2019");
+  const key = crypto.enc.Utf8.parse("hyde2019hyde2019");
   const data = crypto.enc.Utf8.parse(str);
-  const encrypted = crypto.AES.encrypt(data, key, {
+  return crypto.AES.encrypt(data, key, {
     mode: crypto.mode.ECB, 
     padding: crypto.pad.Pkcs7
-  });
-  return encrypted.toString();
+  }).toString();
 };
 
 const login = (mobileNo, password) => {
@@ -85,7 +89,16 @@ const login = (mobileNo, password) => {
     })
     .then(() => cookie.map(x => x.split(/;\s?/)[0]))
     .then(cookies => cookies.join('; '))
-}
+};
+
+const calendar = payload => {
+  return Promise
+    .resolve()
+    .then(() => post(`${bjguahao.api}/dpt/week/calendar.htm`, payload))
+    .then(readStream)
+    .then(JSON.parse)
+    .then(handleError)
+};
 
 const getDoctors = (cookie, payload) => {
   return Promise
@@ -149,6 +162,7 @@ bjguahao.login = login;
 bjguahao.request = request;
 bjguahao.doctors = getDoctors;
 bjguahao.patients = getPatients;
+bjguahao.calendar = calendar;
 bjguahao.api = 'http://www.114yygh.com';
 
 module.exports = bjguahao;

@@ -58,7 +58,7 @@ const datetime = (date, pattern) =>
   });
   console.log();
 
-  const doctor = doctors[0]; // TODO:
+  const doctor = doctors[0];
   payload.doctorId = doctor.doctorId;
   payload.dutySourceId = doctor.dutySourceId;
   const patients = await bjguahao.patients(session, payload);
@@ -90,6 +90,7 @@ const datetime = (date, pattern) =>
 + bjguahao.request
 + bjguahao.doctors
 + bjguahao.patients
++ bjguahao.calendar
 
 ### Contributing
 - Fork this Repo first
