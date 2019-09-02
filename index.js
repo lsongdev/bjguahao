@@ -127,8 +127,8 @@ const getPatients = (cookie, payload) => {
         const id = x.match(/name="(\d+)"/)[1];
         const name = x.match(/<p class="name">(.+)<\/p><p/)[1];
         const phone = x.match(/phone="(\d+)"/)[1];
-        const tail = x.match(/<p class="code"><b>身份证<\/b>\*+(.+)<\/p><\/div><\/div>$/)[1];
-        return { id, name, phone, tail };
+        const code = x.match(/<p class="code"><b>身份证<\/b>\*+(.+)<\/p><\/div><\/div>$/)[1];
+        return { id, name, phone, code };
       });
     })
 };
